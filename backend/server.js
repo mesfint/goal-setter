@@ -10,7 +10,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // It parse url, when we create parameters etc
 
+//Routes
 app.use("/api/goals", require("./routes/goalRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
 //This will update the default express error handler
 app.use(errorHandler);
 
