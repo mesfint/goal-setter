@@ -28,7 +28,10 @@ const setGoal = asyncHandler(async (req, res) => {
     throw new Error("Please add a text field");
   }
   //add user to be included in the goals body when we create a goal
-  const goal = await Goal.create({ text: req.body.text, user: req.user.id });
+  const goal = await Goal.create({
+    text: req.body.text,
+    user: req.user.id,
+  });
   //await Goal.save(goal);
   //res.status(200).json({ message: "Set a new goal" });
   res.status(200).json(goal);
@@ -39,28 +42,29 @@ const setGoal = asyncHandler(async (req, res) => {
 //async         When we interact with db, its asynchronous communication, so we use asyc in all controller
 
 const updateGoal = asyncHandler(async (req, res) => {
-  const existingGoal = await Goal.findById(req.params.id);
-  if (!existingGoal) {
+  const goal = await Goal.findById(req.params.id);
+
+  if (!goal) {
     res.status(400);
     throw new Error("Goal not found");
   }
 
-  const user = await User.findById(req.user.id);
-  //check for user
-
-  if (!user) {
+  // Check for user
+  if (!req.user) {
     res.status(401);
     throw new Error("User not found");
   }
-  //Make sure the logged in user matches the goal user / so that no other user updates others goals except the loggedin one
-  if (goal.user.toString() !== user.id) {
+
+  // Make sure the logged in user matches the goal user
+  if (goal.user.toString() !== req.user.id) {
     res.status(401);
-    throw new Error("User not Authorized");
+    throw new Error("User not authorized");
   }
-  //create a new one if doesn't exist
+
   const updatedGoal = await Goal.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   });
+
   res.status(200).json(updatedGoal);
 });
 //@desc         Delete goals

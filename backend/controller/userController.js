@@ -29,18 +29,23 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // Create a new user and save it to the database
-  const newUser = new User({ name, email, password });
-  await newUser.save();
+  const user = new User({ name, email, password });
+  await user.save();
 
   // Generate and set token to cookies
-  const token = generateToken(newUser._id);
+  const token = generateToken(user._id);
   res.cookie("user_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     maxAge: 86400000,
   });
 
-  res.status(201).json({ newUser });
+  res.status(201).json({
+    _id: user.id,
+    name: user.name,
+    email: user.email,
+    token: generateToken(user._id),
+  });
 });
 
 //@desc         Login User
@@ -57,7 +62,12 @@ const loginUser = asyncHandler(async (req, res) => {
   if (user && (await bcrypt.compare(password, user.password))) {
     // Generate token
     const token = generateToken(user._id);
-    res.json({ user, token });
+    res.json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
   } else {
     res.status(400).json({ error: "Invalid credentials" });
   }
@@ -74,8 +84,8 @@ const getMe = asyncHandler(async (req, res) => {
   //console.log("getMe.user", req.user);
   //req.user.id => has whatever user who is authenticated
 
-  const { _id, name, email } = await User.findById(req.user.id);
-  //res.status(200).json(req.user);
+  //const { _id, name, email } = await User.findById(req.user.id);
+  res.status(200).json(req.user);
   //OR
   //Since we need only this data not the whole(req.user)
   //This out put is usefulll for frontend
@@ -89,5 +99,5 @@ const getMe = asyncHandler(async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
-  getMe, 
+  getMe,
 };
